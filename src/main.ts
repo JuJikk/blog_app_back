@@ -1,25 +1,27 @@
+import 'dotenv/config';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
+import { setupCors } from './setup-cors';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.setGlobalPrefix('api');
-  const config = new DocumentBuilder()
-    .setTitle('Blog API')
-    .setDescription('API for blog')
-    .setVersion('1.0')
-    .addTag('Auth')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  const app = await NestFactory.create(AppModule, {});
 
-  app.enableCors({
-    origin: ['http://localhost:3000', 'https://blog-app-front-xi.vercel.app'],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true,
-  });
-  await app.listen(process.env.PORT ?? 9264);
+  const port = process.env.PORT;
+
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.setGlobalPrefix('api');
+    const options = new DocumentBuilder()
+      .setTitle('Blog API')
+      .setDescription('API Gateway')
+      .setVersion('0.1')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, options);
+    SwaggerModule.setup('docs', app, document);
+
+  setupCors(app);
+  await app.listen(port);
 }
 bootstrap();
