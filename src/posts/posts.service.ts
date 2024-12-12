@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { PostEntity } from './entities/posts.entity';
 import { CommentEntity } from './entities/comments.entity';
 import { CreatePostDto } from './dtos/create-post.dto';
+import { UserEntity } from '../users/entities/users.entity';
 
 @Injectable()
 export class PostService {
@@ -16,31 +17,64 @@ export class PostService {
     private readonly postRepo: Repository<PostEntity>,
     @InjectRepository(CommentEntity)
     private readonly commentRepo: Repository<CommentEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepo: Repository<UserEntity>,
   ) {}
 
-  async createPost(createPostDto: CreatePostDto, userId: number) {
+  async createPost(createPostDto: CreatePostDto, userId: string) {
+    console.log('Creating post...');
+
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
     const post = this.postRepo.create({
       ...createPostDto,
-      user: { id: userId },
+      user, // Pass the full user entity
     });
-    return this.postRepo.save(post);
+
+    console.log(post, 'Post created');
+
+    return await this.postRepo.save(post);
   }
 
-  async updatePost(
-    postId: number,
-    updatePostDto: CreatePostDto,
-    userId: number,
-  ) {
+  async getUserPosts(userId: string) {
+    return this.postRepo.find({
+      where: { user: { id: userId } },
+      relations: ['comments'], // Include related entities if needed
+    });
+  }
+
+  async getAllPosts() {
+    return await this.postRepo.find({
+      relations: ['user', 'comments'],
+    });
+  }
+
+  async updatePost(postId: number, updatePostDto: CreatePostDto) {
     const post = await this.postRepo.findOne({ where: { id: postId } });
     if (!post) throw new NotFoundException('Post not found');
-    if (post.user.id !== userId)
+    if (post.user.id !== updatePostDto.user)
       throw new ForbiddenException('You cannot update this post');
+    // delete updatePostDto.user;
+    // delete updatePostDto.updatedPost.comments;
+    // console.log(post, "POST");
+    // console.log(updatePostDto, "DTO");
+    // @ts-ignore
+    console.log(updatePostDto);
+    console.log(post.title, updatePostDto.title);
+    console.log(post.content, updatePostDto.content);
 
-    Object.assign(post, updatePostDto);
+    post.title = updatePostDto.title;
+    post.content = updatePostDto.content;
+    // const updatePostDtoWithoutEmail = updatePostDto.delete
+    // Object.assign(post, updatePostDto);
+    console.log(post);
     return this.postRepo.save(post);
   }
 
-  async deletePost(postId: number, userId: number) {
+  async deletePost(postId: number, userId: string) {
     const post = await this.postRepo.findOne({
       where: { id: postId },
       relations: ['comments'],
@@ -49,13 +83,26 @@ export class PostService {
     if (post.user.id !== userId)
       throw new ForbiddenException('You cannot delete this post');
 
-    // Optionally, delete comments before deleting the post (if needed)
     await this.commentRepo.delete({ post: { id: postId } });
 
     return this.postRepo.remove(post);
   }
 
-  async addComment(postId: number, content: string, userId: number) {
+  async getPostById(postId: number) {
+    const post = await this.postRepo.findOne({
+      where: { id: postId },
+      relations: ['user', 'comments'], // Include relations if necessary
+    });
+    if (!post) throw new NotFoundException('Post not found');
+    return post;
+  }
+
+  async addComment(postId: number, content: string, userId: string) {
+    console.log(postId, content, userId, 'qweqweqweqwe');
+    if (!content || content.trim() === '') {
+      throw new Error('Content cannot be empty');
+    }
+
     const post = await this.postRepo.findOne({ where: { id: postId } });
     if (!post) throw new NotFoundException('Post not found');
 
@@ -74,17 +121,5 @@ export class PostService {
     });
     if (!post) throw new NotFoundException('Post not found');
     return post.comments;
-  }
-
-  async deleteComment(commentId: number, userId: number) {
-    const comment = await this.commentRepo.findOne({
-      where: { id: commentId },
-      relations: ['user'],
-    });
-    if (!comment) throw new NotFoundException('Comment not found');
-    if (comment.user.id !== userId)
-      throw new ForbiddenException('You cannot delete this comment');
-
-    return this.commentRepo.remove(comment);
   }
 }

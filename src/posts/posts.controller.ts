@@ -8,6 +8,8 @@ import {
   Req,
   UseGuards,
   Patch,
+  BadRequestException,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,7 +24,7 @@ import { CreateCommentDto } from './dtos/create-comment.dto';
 import { CreatePostDto } from './dtos/create-post.dto';
 
 @ApiTags('Posts')
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 @Controller('posts')
 export class PostController {
   constructor(private readonly postService: PostService) {}
@@ -35,8 +37,23 @@ export class PostController {
   })
   @ApiResponse({ status: 201, description: 'Post successfully created' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
-  async createPost(@Body() createPostDto: CreatePostDto, @Req() req) {
-    return this.postService.createPost(createPostDto, req.user.userId);
+  async createPost(@Body() createPostDto: CreatePostDto, userId: string) {
+    return this.postService.createPost(createPostDto, userId);
+  }
+
+  @Get('my-posts')
+  @ApiOperation({
+    summary: 'Retrieve posts created by the user (from query param)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved user posts',
+  })
+  async getUserPosts(@Query('userId') userId: string) {
+    if (!userId) {
+      throw new BadRequestException('User ID is required');
+    }
+    return this.postService.getUserPosts(userId);
   }
 
   @Patch(':id')
@@ -51,9 +68,8 @@ export class PostController {
   async updatePost(
     @Param('id') postId: number,
     @Body() updatePostDto: CreatePostDto,
-    @Req() req,
   ) {
-    return this.postService.updatePost(postId, updatePostDto, req.user.userId);
+    return this.postService.updatePost(postId, updatePostDto);
   }
 
   @Delete(':id')
@@ -61,8 +77,23 @@ export class PostController {
   @ApiParam({ name: 'id', description: 'ID of the post to delete' })
   @ApiResponse({ status: 200, description: 'Post successfully deleted' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  async deletePost(@Param('id') postId: number, @Req() req) {
-    return this.postService.deletePost(postId, req.user.userId);
+  async deletePost(
+    @Param('id') postId: number,
+    @Body() userId: { userId: string },
+  ) {
+    return this.postService.deletePost(postId, userId.userId);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Retrieve a single post by ID' })
+  @ApiParam({ name: 'id', description: 'ID of the post to retrieve' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved the post',
+  })
+  @ApiResponse({ status: 404, description: 'Post not found' })
+  async getPostById(@Param('id') postId: number) {
+    return this.postService.getPostById(postId);
   }
 
   @Post(':id/comments')
@@ -77,9 +108,9 @@ export class PostController {
   async addComment(
     @Param('id') postId: number,
     @Body() body: CreateCommentDto,
-    @Req() req,
   ) {
-    return this.postService.addComment(postId, body.content, req.user.userId);
+    console.log(body, 'jhbh');
+    return this.postService.addComment(postId, body.content, body.userId);
   }
 
   @Get(':id/comments')
@@ -95,16 +126,13 @@ export class PostController {
     return this.postService.getComments(postId);
   }
 
-  @Delete('comments/:commentId')
-  @ApiOperation({ summary: 'Delete a comment' })
-  @ApiParam({
-    name: 'commentId',
-    description: 'ID of the comment to delete',
+  @Get()
+  @ApiOperation({ summary: 'Retrieve all posts' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved all posts',
   })
-  @ApiResponse({ status: 200, description: 'Comment successfully deleted' })
-  @ApiResponse({ status: 403, description: 'You cannot delete this comment' })
-  @ApiResponse({ status: 404, description: 'Comment not found' })
-  async deleteComment(@Param('commentId') commentId: number, @Req() req) {
-    return this.postService.deleteComment(commentId, req.user.userId);
+  async getAllPosts() {
+    return this.postService.getAllPosts();
   }
 }
