@@ -6,7 +6,11 @@ export function setupCors(app: INestApplication) {
   const originList = allowedOrigins?.split(',');
 
   if (isDevelopment) {
-    app.enableCors();
+    app.enableCors({
+      origin: ['http://localhost:3000', 'https://blog-app-front-xi.vercel.app'],
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      credentials: true,
+    });
   } else {
     app.enableCors({
       origin: (origin, callback) => {
