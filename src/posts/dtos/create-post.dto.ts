@@ -9,8 +9,4 @@ export class CreatePostDto {
   @IsString()
   @IsNotEmpty()
   content: string;
-
-  @IsString()
-  @IsNotEmpty()
-  user: string;
 }

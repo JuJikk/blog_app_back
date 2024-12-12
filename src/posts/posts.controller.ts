@@ -16,15 +16,15 @@ import {
   ApiOperation,
   ApiParam,
   ApiBody,
-  ApiResponse,
+  ApiResponse, ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/strategies/jwt-auth.guard';
 import { PostService } from './posts.service';
 import { CreateCommentDto } from './dtos/create-comment.dto';
 import { CreatePostDto } from './dtos/create-post.dto';
+import { ApiJwtPayload, GetUser } from '../auth/decorators/get-user.decorator';
 
 @ApiTags('Posts')
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 @Controller('posts')
 export class PostController {
   constructor(private readonly postService: PostService) {}
@@ -37,8 +37,8 @@ export class PostController {
   })
   @ApiResponse({ status: 201, description: 'Post successfully created' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
-  async createPost(@Body() createPostDto: CreatePostDto, userId: string) {
-    return this.postService.createPost(createPostDto, userId);
+  async createPost(@Body() createPostDto: CreatePostDto, @GetUser() user: ApiJwtPayload) {
+    return this.postService.createPost(createPostDto, user.userId);
   }
 
   @Get('my-posts')
@@ -68,8 +68,9 @@ export class PostController {
   async updatePost(
     @Param('id') postId: number,
     @Body() updatePostDto: CreatePostDto,
+    @GetUser() user: ApiJwtPayload
   ) {
-    return this.postService.updatePost(postId, updatePostDto);
+    return await this.postService.updatePost(postId, updatePostDto, user.userId);
   }
 
   @Delete(':id')

@@ -24,6 +24,8 @@ export class PostService {
   async createPost(createPostDto: CreatePostDto, userId: string) {
     console.log('Creating post...');
 
+    console.log(userId)
+
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) {
       throw new Error('User not found');
@@ -52,10 +54,13 @@ export class PostService {
     });
   }
 
-  async updatePost(postId: number, updatePostDto: CreatePostDto) {
+  async updatePost(postId: number, updatePostDto: CreatePostDto, userId: string) {
+
     const post = await this.postRepo.findOne({ where: { id: postId } });
+    console.log(userId)
+    console.log(post);
     if (!post) throw new NotFoundException('Post not found');
-    if (post.user.id !== updatePostDto.user)
+    if (post.user.id !== userId)
       throw new ForbiddenException('You cannot update this post');
     // delete updatePostDto.user;
     // delete updatePostDto.updatedPost.comments;

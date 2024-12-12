@@ -8,12 +8,14 @@ import {
 import { AuthService } from './auth.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthDto } from './dtos/auth.dto';
+import { Public } from './decorators/public.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('signup')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiBody({
@@ -34,6 +36,7 @@ export class AuthController {
     }
   }
 
+  @Public()
   @Post('login')
   @ApiOperation({ summary: 'Authenticate a user' })
   @ApiBody({
