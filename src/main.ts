@@ -3,7 +3,6 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { setupCors } from './setup-cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {});
@@ -21,7 +20,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('docs', app, document);
 
-  setupCors(app);
   await app.listen(port);
 }
 bootstrap();
