@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthDto } from './dtos/auth.dto';
@@ -29,10 +23,7 @@ export class AuthController {
       const token = await this.authService.register(body.email, body.password);
       return { token };
     } catch (error) {
-      throw new HttpException(
-        error.message,
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -50,10 +41,7 @@ export class AuthController {
       const token = await this.authService.login(body.email, body.password);
       return { token };
     } catch (error) {
-      throw new HttpException(
-        error.message,
-        error.status || HttpStatus.UNAUTHORIZED,
-      );
+      throw new HttpException(error.message, error.status || HttpStatus.UNAUTHORIZED);
     }
   }
 }

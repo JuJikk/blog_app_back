@@ -8,11 +8,7 @@ import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([PostEntity, CommentEntity]),
-    AuthModule,
-    UsersModule,
-  ],
+  imports: [TypeOrmModule.forFeature([PostEntity, CommentEntity]), AuthModule, UsersModule],
   providers: [PostService],
   controllers: [PostController],
 })

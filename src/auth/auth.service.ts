@@ -27,11 +27,7 @@ export class AuthService {
       throw new HttpException('No such user', HttpStatus.UNAUTHORIZED);
     }
 
-    const isPasswordValid = await this.validatePassword(
-      password,
-      user.password,
-    );
-    console.log(isPasswordValid);
+    const isPasswordValid = await this.validatePassword(password, user.password);
     if (!isPasswordValid) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
@@ -43,13 +39,7 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async validatePassword(
-    inputPassword: string,
-    storedPassword: string,
-  ): Promise<boolean> {
-    console.log(inputPassword);
-    console.log(storedPassword);
-    console.log(await bcrypt.compare(inputPassword, storedPassword));
+  async validatePassword(inputPassword: string, storedPassword: string): Promise<boolean> {
     return bcrypt.compare(inputPassword, storedPassword);
   }
 

@@ -5,19 +5,11 @@ import {
   Delete,
   Body,
   Param,
-  Req,
-  UseGuards,
   Patch,
   BadRequestException,
   Query,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiParam,
-  ApiBody,
-  ApiResponse, ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { PostService } from './posts.service';
 import { CreateCommentDto } from './dtos/create-comment.dto';
 import { CreatePostDto } from './dtos/create-post.dto';
@@ -65,11 +57,7 @@ export class PostController {
   })
   @ApiResponse({ status: 200, description: 'Post successfully updated' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  async updatePost(
-    @Param('id') postId: number,
-    @Body() updatePostDto: CreatePostDto,
-    @GetUser() user: ApiJwtPayload
-  ) {
+  async updatePost(@Param('id') postId: number, @Body() updatePostDto: CreatePostDto, @GetUser() user: ApiJwtPayload) {
     return await this.postService.updatePost(postId, updatePostDto, user.userId);
   }
 
@@ -78,10 +66,7 @@ export class PostController {
   @ApiParam({ name: 'id', description: 'ID of the post to delete' })
   @ApiResponse({ status: 200, description: 'Post successfully deleted' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  async deletePost(
-    @Param('id') postId: number,
-    @Body() userId: { userId: string },
-  ) {
+  async deletePost(@Param('id') postId: number, @Body() userId: { userId: string }) {
     return this.postService.deletePost(postId, userId.userId);
   }
 
@@ -106,11 +91,7 @@ export class PostController {
   })
   @ApiResponse({ status: 201, description: 'Comment successfully added' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  async addComment(
-    @Param('id') postId: number,
-    @Body() body: CreateCommentDto,
-  ) {
-    console.log(body, 'jhbh');
+  async addComment(@Param('id') postId: number, @Body() body: CreateCommentDto) {
     return this.postService.addComment(postId, body.content, body.userId);
   }
 

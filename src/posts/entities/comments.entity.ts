@@ -10,9 +10,9 @@ export class CommentEntity {
   @Column()
   content: string;
 
-  @ManyToOne(() => PostEntity, (post) => post.comments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => PostEntity, post => post.comments, { onDelete: 'CASCADE' })
   post: PostEntity;
 
-  @ManyToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => UserEntity, user => user.id, { onDelete: 'CASCADE' })
   user: UserEntity;
 }

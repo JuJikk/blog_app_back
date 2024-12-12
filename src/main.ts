@@ -12,14 +12,14 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.setGlobalPrefix('api');
-    const options = new DocumentBuilder()
-      .setTitle('Blog API')
-      .setDescription('API Gateway')
-      .setVersion('0.1')
-      .addBearerAuth()
-      .build();
-    const document = SwaggerModule.createDocument(app, options);
-    SwaggerModule.setup('docs', app, document);
+  const options = new DocumentBuilder()
+    .setTitle('Blog API')
+    .setDescription('API Gateway')
+    .setVersion('0.1')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, options);
+  SwaggerModule.setup('docs', app, document);
 
   setupCors(app);
   await app.listen(port);
