@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../users/users.service';
@@ -10,22 +10,32 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(
-    email: string,
-    password: string,
-  ): Promise<{ accessToken: string }> {
-    const user = await this.userService.validateUser(email, password);
-    if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+  async register(email: string, password: string): Promise<string> {
+    const userExists = await this.userService.findByEmail(email);
+    if (userExists) {
+      throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
     }
 
-    const payload = { userId: user.id, email: user.email };
-    const accessToken = this.jwtService.sign(payload);
-    return { accessToken };
+    const hashedPassword = await this.hashPassword(password);
+    const user = await this.userService.create(email, hashedPassword);
+    return this.generateToken(user);
   }
 
-  async register(email: string, password: string) {
-    return this.userService.register(email, password);
+  async login(email: string, password: string): Promise<string> {
+    const user = await this.userService.findByEmail(email);
+    if (!user) {
+      throw new HttpException('No such user', HttpStatus.UNAUTHORIZED);
+    }
+
+    const isPasswordValid = await this.validatePassword(
+      password,
+      user.password,
+    );
+    console.log(isPasswordValid);
+    if (!isPasswordValid) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+    return this.generateToken(user);
   }
 
   async generateToken(user: any): Promise<string> {
@@ -37,22 +47,10 @@ export class AuthService {
     inputPassword: string,
     storedPassword: string,
   ): Promise<boolean> {
+    console.log(inputPassword);
+    console.log(storedPassword);
+    console.log(await bcrypt.compare(inputPassword, storedPassword));
     return bcrypt.compare(inputPassword, storedPassword);
-  }
-
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.userService.findByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-    const isPasswordValid = await this.validatePassword(
-      password,
-      user.password,
-    );
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-    return user;
   }
 
   async hashPassword(password: string): Promise<string> {

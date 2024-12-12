@@ -4,14 +4,14 @@ import { CommentEntity } from '../../posts/entities/comments.entity';
 
 @Entity()
 export class UserEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true })
   email: string;
 
   @Column()
-  password: string; // Store hashed passwords!
+  password: string;
 
   @OneToMany(() => PostEntity, (post) => post.user)
   posts: PostEntity[];
